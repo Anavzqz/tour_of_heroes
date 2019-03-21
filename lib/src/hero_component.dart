@@ -1,21 +1,30 @@
+import 'dart:async';
 import 'package:angular/angular.dart';
 import 'package:angular_forms/angular_forms.dart';
+import 'package:angular_router/angular_router.dart';
 import 'hero.dart';
+import 'hero_service.dart';
+import 'route_paths.dart';
 
 @Component(
   selector: 'my-hero',
-  template: '''
-    <div *ngIf="hero != null">
-      <h2>{{hero.name}}</h2>
-      <div><label>id: </label>{{hero.id}}</div>
-      <div>
-        <label>name: </label>
-        <input [(ngModel)]="hero.name" placeholder="name">
-      </div>
-    </div>''',
+  templateUrl: 'hero_component.html',
+  styleUrls: ['hero_component.css'],
   directives: [coreDirectives, formDirectives],
 )
-class HeroComponent {
-  @Input() //Con ngModel modifica la linea 9, dependiendo lo que haya en el input
+class HeroComponent implements OnActivate {
   Hero hero;
+  final HeroService _heroService;
+  final Location _location;
+  HeroComponent(this._heroService, this._location);
+  @override
+  void onActivate(_, RouterState current) async {
+    final id = current.parameters["id"];
+    if (id != null) hero = await (_heroService.get(int.parse (id)));
+  }
+  Future<void> save() async {
+    await _heroService.update(hero);
+    goBack();
+  }
+  void goBack() => _location.back();
 }
